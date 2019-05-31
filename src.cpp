@@ -43,19 +43,8 @@ struct pstate
 	pstate* prev = NULL; // previous state
 } typedef pstate;
 
-// FOR TEST: print the given state
-void print_state(pstate state, bool print_all = false)
-{
-	int i, j;
-	if (print_all)
-		printf("different: %3d, move: %3d, score: %3d\n", state.different, state.move, state.score);
-	for (i = 0; i < 5; i++)
-	{
-		for (j = 0; j < 5; j++)
-			printf("%2d ", state.m[i][j]);
-		printf("\n");
-	}
-}
+// FOR TEST: check solution
+void solution_check();
 
 // print the solution
 void print_solution(int attempt, char solution_list[], int solution_length)
@@ -254,10 +243,15 @@ void puzzleSolution()
 {
 	int i, j, k, t;
 	pstate *states;
+
 	scanf("%d", &t);
+	if (t <= 0)
+	{
+		solution_check();
+		return;
+	}
 
 	states = (pstate*)malloc(sizeof(pstate) * t);
-
 	if (states == NULL)
 	{
 		printf("Memory Allocation Failed. Please try again.\n");
@@ -276,4 +270,98 @@ int main(void)
 {
 	printf("[Computer Algorithm - 5*5 Puzzle] by team 3\n");
 	puzzleSolution();
+}
+
+void solution_check()
+{
+	int i, j, move;
+	int m[5][5] = { 0 };
+	char c;
+	bool fail;
+
+	while (true)
+	{
+		printf("Input 0 to exit, else to continue.\n");
+		scanf("%d", &i);
+		if (i == 0) break;
+
+		// init m and find position of the HOLE
+		printf("Input the initial state.\n");
+		for (i = 0; i < 5; i++)
+			for (j = 0; j < 5; j++)
+				scanf("%d", &m[i][j]);
+		for (i = 24; i >= 0; i--)
+			if (m[i / 5][i % 5] == HOLE)
+			{
+				j = i % 5;
+				i = i / 5;
+				break;
+			}
+
+		// handle exception
+		if (i < 0)
+		{
+			printf("Invalid state! Try again.\n");
+			continue;
+		}
+		
+		// move according to the solution
+		printf("Input the solution(ex: 4 L U U R).\n");
+		scanf("%d", &move);
+		while (move-- > 0)
+		{
+			scanf("%c", &c);
+			switch (c)
+			{
+				case U:
+					if (i == 0) printf("Can't move upward.\n");
+					else
+					{
+						m[i][j] = m[i - 1][j];
+						m[--i][j] = HOLE;
+					}
+					break;
+				case D:
+					if (i == 4) printf("Can't move downward.\n");
+					else
+					{
+						m[i][j] = m[i + 1][j];
+						m[++i][j] = HOLE;
+					}
+					break;
+				case L:
+					if (j == 0) printf("Can't move leftward.\n");
+					else
+					{
+						m[i][j] = m[i][j - 1];
+						m[i][--j] = HOLE;
+					}
+					break;
+				case R:
+					if (j == 4) printf("Can't move rightward.\n");
+					else
+					{
+						m[i][j] = m[i][j + 1];
+						m[i][++j] = HOLE;
+					}
+					break;
+				default:
+					move++;
+					break;
+			}
+		}
+
+		// check if the state is completed
+		fail = false;
+		for (i = 0; i < 5; i++)
+		{
+			for (j = 0; j < 5; j++)
+			{
+				if (m[i][j] != i * 5 + j + 1) fail = true;
+				printf("%2d ", m[i][j]);
+			}
+			printf("\n");
+		}
+		printf(fail ? "fail\n\n" : "success\n\n");
+	}
 }
