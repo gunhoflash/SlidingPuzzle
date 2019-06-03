@@ -27,7 +27,6 @@ struct pstate
 	int m[5][6];         // 1 ~ 24 and HOLE
 	int different;
 	int move;
-	int score;
 	pstate* prev = NULL; // previous state
 } typedef pstate;
 
@@ -94,7 +93,7 @@ bool isSolvable(pstate state)
 	return (total_inversion % 2 == 0);
 }
 
-// calculate different and score of the given state
+// calculate different of the given state
 void calculate_state(pstate *state)
 {
 	int i, j, m, t1, t2;
@@ -118,11 +117,9 @@ void calculate_state(pstate *state)
 				state->different += t1 + t2;
 			}
 		}
-
-	state->score = state->different * score_coefficient + (state->move << 6);
 }
 
-// find next states, set moves, and calculate score
+// find next states, set moves, and calculate
 void add_new_state(pstate **states, int *states_length, pstate* prev, char type, int solution_length)
 {
 	int i, j, k, l;
@@ -185,6 +182,7 @@ void add_new_state(pstate **states, int *states_length, pstate* prev, char type,
 void set_next_state(pstate **states, int states_length, pstate **state, int solution_length)
 {
 	int i = states_length;
+	int s1, s2;
 	pstate *next_state = NULL;
 	while (i--)
 	{
@@ -194,9 +192,11 @@ void set_next_state(pstate **states, int states_length, pstate **state, int solu
 		if (next_state == NULL) next_state = states[i];
 		else
 		{
-			if (next_state->score > states[i]->score)
+			s1 = next_state->different * score_coefficient + (next_state->move << 6);
+			s2 = states[i]->different * score_coefficient + (states[i]->move << 6);
+			if (s1 > s2)
 				next_state = states[i];
-			else if (next_state->score == states[i]->score)
+			else if (s1 == s2)
 				if (next_state->move > states[i]->move)
 					next_state = states[i];
 			if (i < search_bound) break;
@@ -255,7 +255,7 @@ void state_test(int attempt, pstate *first)
 			{
 				update_solution(state, solution_list, &solution_length);
 				set_next_state(states, states_length, &state, solution_length);
-				if (states_length > 100000) break;
+				if (states_length > 75000) break;
 				continue;
 			}
 
@@ -276,11 +276,11 @@ void state_test(int attempt, pstate *first)
 			}
 
 			// tune
-			if (states_length > 20000)
+			if (states_length > 25000)
 			{
-				score_coefficient = 32 + (states_length >> 9);
-				search_bound = states_length * 0.75;
-				if (solution_length >= 0 && states_length > 100000) break;
+				score_coefficient = 30 + (states_length >> 9);
+				search_bound = states_length * 0.7;
+				if (solution_length >= 0 && states_length > 72000) break;
 			}
 			
 			// pick a state with lowest score
