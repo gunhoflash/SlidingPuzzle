@@ -17,7 +17,6 @@
 int score_coefficient;
 int search_bound;
 
-// 152-byte size
 struct pstate
 {
 	bool visit;
@@ -187,7 +186,7 @@ void set_next_state(pstate **states, int states_length, pstate **state, int solu
 	while (i--)
 	{
 		if (states[i]->visit) continue;
-		if (states[i] == *state) continue;
+		// if (states[i] == *state) continue; // state is already visited
 		if (solution_length != -1 && states[i]->move >= solution_length) continue;
 		if (next_state == NULL) next_state = states[i];
 		else
@@ -255,7 +254,7 @@ void state_test(int attempt, pstate *first)
 			{
 				update_solution(state, solution_list, &solution_length);
 				set_next_state(states, states_length, &state, solution_length);
-				if (states_length > 75000) break;
+				if (states_length > 72000) break;
 				continue;
 			}
 
@@ -278,7 +277,7 @@ void state_test(int attempt, pstate *first)
 			// tune
 			if (states_length > 25000)
 			{
-				score_coefficient = 30 + (states_length >> 9);
+				score_coefficient = 28 + (states_length >> 9);
 				search_bound = states_length * 0.7;
 				if (solution_length >= 0 && states_length > 72000) break;
 			}
